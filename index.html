@@ -1,17 +1,223 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<base target="_top">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>เพิ่มใบหน้าพนักงาน</title>
-</head>
-   <body>
-      <iframe 
-         style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;border: 0;" 
-         src="https://script.google.com/macros/s/AKfycbwJcLvclZCxLN_e8v6DSD3R-pzEL8uDf0nabE7hEvZdsCYedz-tyNpTEj5rDvQ8Ju6H/exec"
-         allow="camera; microphone">         
-         </iframe>
-   </body>
-</html>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ระบบลงทะเบียนใบหน้าพนักงาน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Sarabun', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
 
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 48px 40px;
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+
+    .icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+    }
+
+    .icon svg {
+      width: 40px;
+      height: 40px;
+      fill: white;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #64748b;
+      font-size: 1rem;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .warning-box {
+      background: #fef3c7;
+      border: 1px solid #fbbf24;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      text-align: left;
+    }
+
+    .warning-box svg {
+      width: 20px;
+      height: 20px;
+      fill: #d97706;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .warning-box p {
+      color: #92400e;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .btn-main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+      font-family: 'Sarabun', sans-serif;
+      margin-bottom: 12px;
+    }
+
+    .btn-main:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(99,102,241,0.5);
+    }
+
+    .btn-main svg { width: 22px; height: 22px; fill: white; }
+
+    .btn-secondary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 14px 24px;
+      background: transparent;
+      color: #6366f1;
+      font-size: 1rem;
+      font-weight: 600;
+      border: 2px solid #6366f1;
+      border-radius: 999px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      font-family: 'Sarabun', sans-serif;
+    }
+
+    .btn-secondary:hover {
+      background: #eff6ff;
+    }
+
+    .btn-secondary svg { width: 20px; height: 20px; fill: #6366f1; }
+
+    .divider {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+
+    <div class="icon">
+      <!-- Face icon -->
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+    </div>
+
+    <h1>ลงทะเบียนใบหน้าพนักงาน</h1>
+    <p>ระบบต้องการเข้าถึงกล้องเพื่อสแกนใบหน้า<br>กรุณาเปิดในหน้าต่างใหม่เพื่อให้ระบบทำงานได้ถูกต้อง</p>
+
+    <div class="warning-box">
+      <!-- Warning icon -->
+      <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+      <p>การฝังในหน้าเว็บ (iframe) ทำให้เบราว์เซอร์บล็อกการเข้าถึงกล้อง กรุณากดปุ่มด้านล่างเพื่อเปิดในหน้าต่างใหม่</p>
+    </div>
+
+    <!-- ✅ เปิดในหน้าต่างใหม่ (แก้ปัญหากล้องได้ 100%) -->
+    <a class="btn-main"
+       href="https://script.google.com/macros/s/AKfycbwJcLvclZCxLN_e8v6DSD3R-pzEL8uDf0nabE7hEvZdsCYedz-tyNpTEj5rDvQ8Ju6H/exec"
+       target="_blank" rel="noopener">
+      <!-- Camera icon -->
+      <svg viewBox="0 0 24 24"><path d="M12 15.2A3.2 3.2 0 0 1 8.8 12 3.2 3.2 0 0 1 12 8.8 3.2 3.2 0 0 1 15.2 12 3.2 3.2 0 0 1 12 15.2M12 7a5 5 0 0 0-5 5 5 5 0 0 0 5 5 5 5 0 0 0 5-5 5 5 0 0 0-5-5m-7 13h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-1.17L14 5h-4L8.17 7H7a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2z"/></svg>
+      เปิดระบบลงทะเบียน (แนะนำ)
+    </a>
+
+    <div class="divider">— หรือ —</div>
+
+    <!-- Fallback: ลองใช้ iframe พร้อม permission -->
+    <button class="btn-secondary" onclick="tryIframe()">
+      <!-- Embed icon -->
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      ลองเปิดในหน้านี้
+    </button>
+
+  </div>
+
+  <!-- iframe ซ่อนไว้ก่อน -->
+  <div id="iframeContainer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:999;">
+    <div style="padding:10px; background:#6366f1; display:flex; align-items:center; gap:10px;">
+      <button onclick="closeIframe()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 16px; border-radius:999px; cursor:pointer; font-family:'Sarabun',sans-serif; font-size:1rem;">
+        ← กลับ
+      </button>
+      <span style="color:white; font-weight:600;">ลงทะเบียนใบหน้าพนักงาน</span>
+    </div>
+    <iframe
+      id="gasIframe"
+      style="width:100%; height:calc(100% - 50px); border:0;"
+      allow="camera; microphone; geolocation; fullscreen"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwJcLvclZCxLN_e8v6DSD3R-pzEL8uDf0nabE7hEvZdsCYedz-tyNpTEj5rDvQ8Ju6H/exec";
+
+    function tryIframe() {
+      const container = document.getElementById('iframeContainer');
+      const iframe = document.getElementById('gasIframe');
+      
+      // โหลด URL เฉพาะตอนกด (ไม่โหลดตั้งแต่แรก)
+      if (!iframe.src || iframe.src === 'about:blank') {
+        iframe.src = GAS_URL;
+      }
+      
+      container.style.display = 'block';
+    }
+
+    function closeIframe() {
+      document.getElementById('iframeContainer').style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>
