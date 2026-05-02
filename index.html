@@ -36,31 +36,7 @@
 
     .container { max-width: 1200px; margin: 0 auto; }
 
-    /* ===== CONFIG BANNER ===== */
-    #configBanner {
-      background: #fff3cd;
-      border: 2px solid #ffc107;
-      border-radius: var(--radius);
-      padding: 20px 24px;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    #configBanner.hidden { display: none; }
-    #configBanner i { font-size: 1.5rem; color: #d97706; }
-    #configBanner .config-content { flex: 1; }
-    #configBanner h3 { color: #92400e; margin-bottom: 8px; }
-    #gasUrlInput {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid #d97706;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      font-family: 'Sarabun', sans-serif;
-      margin-bottom: 8px;
-    }
-    #gasUrlInput:focus { outline: none; border-color: var(--primary); }
+
 
     /* ===== HEADER ===== */
     .page-header {
@@ -328,26 +304,7 @@
 
 <div class="container">
 
-  <!-- ===== CONFIG BANNER ===== -->
-  <!-- 🔧 ใส่ URL ของ Google Apps Script Web App ตรงนี้ -->
-  <div id="configBanner">
-    <i class="fas fa-cog"></i>
-    <div class="config-content">
-      <h3>⚙️ ตั้งค่า Google Apps Script URL</h3>
-      <p style="color:#92400e; margin-bottom:8px; font-size:0.9rem;">
-        วาง URL ของ GAS Web App (Deploy → Manage deployments → Copy URL)
-      </p>
-      <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/AKfyc.../exec">
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="saveGasUrl()">
-          <i class="fas fa-save"></i> บันทึก URL
-        </button>
-        <button class="btn btn-outline btn-sm" onclick="testConnection()">
-          <i class="fas fa-plug"></i> ทดสอบการเชื่อมต่อ
-        </button>
-      </div>
-    </div>
-  </div>
+
 
   <!-- ===== HEADER ===== -->
   <header class="page-header">
@@ -358,9 +315,6 @@
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
       <button class="btn btn-outline btn-sm" onclick="refreshEmployeeList()">
         <i class="fas fa-sync-alt"></i> รีเฟรช
-      </button>
-      <button class="btn btn-secondary btn-sm" onclick="changeGasUrl()">
-        <i class="fas fa-cog"></i> ตั้งค่า URL
       </button>
     </div>
   </header>
@@ -384,9 +338,9 @@
       </div>
 
       <div class="employee-list" id="employeeList">
-        <div class="status-box warning">
-          <i class="fas fa-info-circle"></i>
-          <span>กรุณาตั้งค่า GAS URL ก่อน แล้วกด "รีเฟรช"</span>
+        <div class="status-box info">
+          <i class="fas fa-spinner fa-spin"></i>
+          <span>กำลังโหลดรายชื่อพนักงาน...</span>
         </div>
       </div>
     </div>
@@ -442,7 +396,7 @@
 // ================================================================
 // 🔧 CONFIG — เปลี่ยน URL ตรงนี้ หรือใช้ UI input ด้านบนก็ได้
 // ================================================================
-let GAS_URL = localStorage.getItem('gasUrl') || '';
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwDg5FUHrFdsLq0BYa63vnYpcS0o9t0q86V087PY5Jc67sZ23CLIwkRW3XHCqxRTkfaJQ/exec';
 
 // ================================================================
 // STATE
@@ -461,64 +415,17 @@ const ctx    = canvas.getContext('2d');
 // INIT
 // ================================================================
 document.addEventListener('DOMContentLoaded', () => {
-  // แสดง/ซ่อน config banner
-  if (GAS_URL) {
-    document.getElementById('gasUrlInput').value = GAS_URL;
-    document.getElementById('configBanner').classList.add('hidden');
-    loadEmployeeList();
-  }
+  loadEmployeeList();
   loadFaceModels();
 });
 
 // ================================================================
-// CONFIG / URL
-// ================================================================
-function saveGasUrl() {
-  const url = document.getElementById('gasUrlInput').value.trim();
-  if (!url || !url.startsWith('https://')) {
-    Swal.fire('URL ไม่ถูกต้อง', 'กรุณาใส่ URL ที่ขึ้นต้นด้วย https://', 'warning');
-    return;
-  }
-  GAS_URL = url;
-  localStorage.setItem('gasUrl', url);
-  document.getElementById('configBanner').classList.add('hidden');
-  Swal.fire({ icon: 'success', title: 'บันทึก URL แล้ว', timer: 1500, showConfirmButton: false });
-  loadEmployeeList();
-}
-
-function changeGasUrl() {
-  document.getElementById('gasUrlInput').value = GAS_URL;
-  document.getElementById('configBanner').classList.remove('hidden');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-async function testConnection() {
-  const url = document.getElementById('gasUrlInput').value.trim();
-  if (!url) return;
-  try {
-    setLoadingText('กำลังทดสอบการเชื่อมต่อ...');
-    showLoading();
-    const res = await gasCall(url, 'ping');
-    hideLoading();
-    if (res && res.ok) {
-      Swal.fire({ icon: 'success', title: 'เชื่อมต่อสำเร็จ!', text: 'GAS ตอบสนองปกติ', timer: 2000, showConfirmButton: false });
-    } else {
-      Swal.fire('เชื่อมต่อได้แต่ GAS ตอบผิดปกติ', JSON.stringify(res), 'warning');
-    }
-  } catch(e) {
-    hideLoading();
-    Swal.fire('เชื่อมต่อไม่สำเร็จ', e.message, 'error');
-  }
-}
-
-// ================================================================
 // GAS API CALL (fetch แทน google.script.run)
 // ================================================================
-async function gasCall(url, action, payload = {}) {
+async function gasCall(action, payload = {}) {
   const body = JSON.stringify({ action, ...payload });
-  const res = await fetch(url || GAS_URL, {
+  const res = await fetch(GAS_URL, {
     method: 'POST',
-    // GAS ต้องการ text/plain เพื่อหลีกเลี่ยง CORS preflight
     headers: { 'Content-Type': 'text/plain' },
     body
   });
@@ -550,13 +457,9 @@ function loadFaceModels() {
 // EMPLOYEE LIST
 // ================================================================
 async function loadEmployeeList() {
-  if (!GAS_URL) {
-    setListHtml('<div class="status-box warning"><i class="fas fa-exclamation-triangle"></i> กรุณาตั้งค่า GAS URL ก่อน</div>');
-    return;
-  }
   setListHtml('<div class="status-box info"><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</div>');
   try {
-    const data = await gasCall(GAS_URL, 'getEmployeesWithFaceStatus');
+    const data = await gasCall('getEmployeesWithFaceStatus');
     if (!data.success) throw new Error(data.message || 'ข้อผิดพลาดจาก GAS');
     employees = data.employees || [];
     renderList();
@@ -704,7 +607,7 @@ function captureAndProcess() {
       showCamOverlay('กำลังบันทึกข้อมูล...');
       const descriptor = Array.from(det.descriptor);
 
-      const result = await gasCall(GAS_URL, 'saveFaceDescriptor', {
+      const result = await gasCall('saveFaceDescriptor', {
         employeeName: selectedEmp.name,
         descriptor
       });
@@ -769,7 +672,7 @@ async function deleteFaceData() {
 
   showCamOverlay('กำลังลบข้อมูล...');
   try {
-    const result = await gasCall(GAS_URL, 'deleteFaceDescriptor', { employeeName: selectedEmp.name });
+    const result = await gasCall('deleteFaceDescriptor', { employeeName: selectedEmp.name });
     hideCamOverlay();
     if (result.success) {
       Swal.fire({ icon: 'success', title: 'ลบข้อมูลสำเร็จ', timer: 1500, showConfirmButton: false });
