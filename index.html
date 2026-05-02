@@ -1,17 +1,814 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
-<base target="_top">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>เพิ่มใบหน้าพนักงาน</title>
+  <meta charset="UTF-8">
+  <title>ลงทะเบียนใบหน้าพนักงาน</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- ✅ GitHub Pages = HTTPS = กล้องทำงานได้ปกติ ไม่ต้องขอ permission พิเศษ -->
+
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 16px;
+    }
+
+    * { font-family: 'Sarabun', sans-serif; box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; }
+
+    /* ===== CONFIG BANNER ===== */
+    #configBanner {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    #configBanner.hidden { display: none; }
+    #configBanner i { font-size: 1.5rem; color: #d97706; }
+    #configBanner .config-content { flex: 1; }
+    #configBanner h3 { color: #92400e; margin-bottom: 8px; }
+    #gasUrlInput {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid #d97706;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: 'Sarabun', sans-serif;
+      margin-bottom: 8px;
+    }
+    #gasUrlInput:focus { outline: none; border-color: var(--primary); }
+
+    /* ===== HEADER ===== */
+    .page-header {
+      background: rgba(255,255,255,0.97);
+      backdrop-filter: blur(12px);
+      border-radius: var(--radius);
+      padding: 24px 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .page-header h1 {
+      font-size: 1.7rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .page-header p { color: var(--muted); margin-top: 4px; font-size: 0.95rem; }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title i { color: var(--primary); }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 24px;
+    }
+    @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+    /* ===== STATS ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .stat-card h3 { font-size: 1.8rem; color: var(--primary); }
+    .stat-card p { font-size: 0.8rem; color: var(--muted); margin-top: 4px; }
+
+    /* ===== SEARCH ===== */
+    .search-box { position: relative; margin-bottom: 16px; }
+    .search-box input {
+      width: 100%;
+      padding: 11px 16px 11px 42px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-family: 'Sarabun', sans-serif;
+      transition: all 0.2s;
+    }
+    .search-box input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+    .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+    /* ===== EMPLOYEE LIST ===== */
+    .employee-list { max-height: 520px; overflow-y: auto; padding-right: 4px; }
+    .employee-list::-webkit-scrollbar { width: 6px; }
+    .employee-list::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 3px; }
+    .employee-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+    .employee-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      background: #f8fafc;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .employee-item:hover { background: #eff6ff; border-color: #c7d2fe; }
+    .employee-item.selected {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+    }
+    .employee-item.selected .emp-badge { background: rgba(255,255,255,0.2); color: white; }
+
+    .emp-info { display: flex; align-items: center; gap: 12px; }
+    .emp-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a5b4fc, #6366f1);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 700; font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .emp-name { font-weight: 600; font-size: 0.95rem; }
+    .emp-badge {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-ok { background: #dcfce7; color: #16a34a; }
+    .badge-no { background: #fef3c7; color: #b45309; }
+
+    /* ===== CAMERA ===== */
+    .selected-emp-bar {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .selected-emp-bar.hidden { display: none; }
+    .sel-avatar {
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 700;
+    }
+    .sel-info h3 { font-size: 1.2rem; margin-bottom: 3px; }
+    .sel-info p { font-size: 0.85rem; opacity: 0.88; }
+
+    .camera-wrap {
+      position: relative;
+      background: #0f172a;
+      border-radius: 14px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+    }
+    .camera-wrap video,
+    .camera-wrap canvas {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+    .cam-overlay {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      background: rgba(15,23,42,0.78);
+      color: white;
+      gap: 12px;
+      z-index: 10;
+    }
+    .cam-overlay.hidden { display: none; }
+    .cam-overlay .spin { font-size: 2.2rem; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .cam-overlay span { font-size: 1.05rem; opacity: 0.9; }
+
+    .face-ring {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 190px; height: 235px;
+      border: 2.5px dashed rgba(255,255,255,0.45);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .cam-btns { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      padding: 11px 22px;
+      border: none;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      font-family: 'Sarabun', sans-serif;
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 14px rgba(99,102,241,0.38);
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,102,241,0.48); }
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+    .btn-secondary { background: #64748b; color: white; }
+    .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+    .btn-sm { padding: 8px 16px; font-size: 0.875rem; }
+
+    /* ===== STATUS BOX ===== */
+    .status-box {
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+    }
+    .status-box.info { background: #eff6ff; color: #1d4ed8; }
+    .status-box.success { background: #dcfce7; color: #16a34a; }
+    .status-box.warning { background: #fef3c7; color: #b45309; }
+    .status-box.error { background: #fee2e2; color: #dc2626; }
+    .status-box.hidden { display: none; }
+
+    .hidden { display: none !important; }
+
+    /* ===== LOADING SCREEN ===== */
+    #loadingScreen {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    #loadingScreen.hidden { display: none; }
+    .loading-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px 40px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+    }
+    .loading-card i { font-size: 2.5rem; color: var(--primary); margin-bottom: 12px; }
+    .loading-card p { color: var(--muted); font-size: 1rem; }
+  </style>
 </head>
-   <body>
-      <iframe 
-         style="position: absolute;top: 0;left: 0;width: 100%;height: 100%;border: 0;" 
-         src="https://script.google.com/macros/s/AKfycbwJcLvclZCxLN_e8v6DSD3R-pzEL8uDf0nabE7hEvZdsCYedz-tyNpTEj5rDvQ8Ju6H/exec"
-         allow="camera; microphone">         
-         </iframe>
-   </body>
+
+<body>
+
+<!-- ===== LOADING SCREEN ===== -->
+<div id="loadingScreen">
+  <div class="loading-card">
+    <i class="fas fa-spinner fa-spin"></i>
+    <p id="loadingText">กำลังโหลด AI โมเดล...</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ===== CONFIG BANNER ===== -->
+  <!-- 🔧 ใส่ URL ของ Google Apps Script Web App ตรงนี้ -->
+  <div id="configBanner">
+    <i class="fas fa-cog"></i>
+    <div class="config-content">
+      <h3>⚙️ ตั้งค่า Google Apps Script URL</h3>
+      <p style="color:#92400e; margin-bottom:8px; font-size:0.9rem;">
+        วาง URL ของ GAS Web App (Deploy → Manage deployments → Copy URL)
+      </p>
+      <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/AKfyc.../exec">
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="saveGasUrl()">
+          <i class="fas fa-save"></i> บันทึก URL
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="testConnection()">
+          <i class="fas fa-plug"></i> ทดสอบการเชื่อมต่อ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HEADER ===== -->
+  <header class="page-header">
+    <div>
+      <h1><i class="fas fa-user-shield"></i> ลงทะเบียนใบหน้าพนักงาน</h1>
+      <p>จัดการข้อมูลใบหน้าสำหรับระบบลงเวลาอัตโนมัติ</p>
+    </div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" onclick="refreshEmployeeList()">
+        <i class="fas fa-sync-alt"></i> รีเฟรช
+      </button>
+      <button class="btn btn-secondary btn-sm" onclick="changeGasUrl()">
+        <i class="fas fa-cog"></i> ตั้งค่า URL
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN GRID ===== -->
+  <div class="main-grid">
+
+    <!-- LEFT: Employee List -->
+    <div class="card">
+      <h2 class="card-title"><i class="fas fa-users"></i> รายชื่อพนักงาน</h2>
+
+      <div class="stats-grid">
+        <div class="stat-card"><h3 id="statTotal">-</h3><p>ทั้งหมด</p></div>
+        <div class="stat-card"><h3 id="statOk">-</h3><p>ลงทะเบียนแล้ว</p></div>
+        <div class="stat-card"><h3 id="statPending">-</h3><p>ยังไม่ลงทะเบียน</p></div>
+      </div>
+
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="searchInput" placeholder="ค้นหาชื่อ..." oninput="filterList()">
+      </div>
+
+      <div class="employee-list" id="employeeList">
+        <div class="status-box warning">
+          <i class="fas fa-info-circle"></i>
+          <span>กรุณาตั้งค่า GAS URL ก่อน แล้วกด "รีเฟรช"</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Camera -->
+    <div class="card">
+      <h2 class="card-title"><i class="fas fa-camera"></i> ลงทะเบียนใบหน้า</h2>
+
+      <div id="selectedBar" class="selected-emp-bar hidden">
+        <div class="sel-avatar" id="selAvatar">?</div>
+        <div class="sel-info">
+          <h3 id="selName">-</h3>
+          <p id="selStatus">-</p>
+        </div>
+      </div>
+
+      <div id="noSelectMsg" class="status-box warning">
+        <i class="fas fa-hand-pointer"></i>
+        <span>เลือกพนักงานจากรายชื่อทางซ้ายเพื่อเริ่มลงทะเบียน</span>
+      </div>
+
+      <div id="cameraSection" class="hidden">
+        <div class="camera-wrap">
+          <video id="video" autoplay playsinline muted></video>
+          <canvas id="canvas" style="display:none;"></canvas>
+          <div class="face-ring"></div>
+          <div id="camOverlay" class="cam-overlay">
+            <i class="fas fa-spinner spin"></i>
+            <span id="overlayTxt">กำลังเตรียมระบบ...</span>
+          </div>
+        </div>
+
+        <div class="cam-btns">
+          <button id="btnCapture" class="btn btn-primary" onclick="captureAndProcess()" disabled>
+            <i class="fas fa-camera"></i> ถ่ายภาพและบันทึก
+          </button>
+          <button id="btnRetake" class="btn btn-secondary hidden" onclick="retakePhoto()">
+            <i class="fas fa-redo"></i> ถ่ายใหม่
+          </button>
+          <button id="btnDelete" class="btn btn-danger hidden" onclick="deleteFaceData()">
+            <i class="fas fa-trash"></i> ลบข้อมูลใบหน้า
+          </button>
+        </div>
+
+        <div id="statusMsg"></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// ================================================================
+// 🔧 CONFIG — เปลี่ยน URL ตรงนี้ หรือใช้ UI input ด้านบนก็ได้
+// ================================================================
+let GAS_URL = localStorage.getItem('gasUrl') || '';
+
+// ================================================================
+// STATE
+// ================================================================
+let employees = [];
+let selectedEmp = null;
+let faceApiReady = false;
+let stream = null;
+let processing = false;
+
+const video  = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+
+// ================================================================
+// INIT
+// ================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  // แสดง/ซ่อน config banner
+  if (GAS_URL) {
+    document.getElementById('gasUrlInput').value = GAS_URL;
+    document.getElementById('configBanner').classList.add('hidden');
+    loadEmployeeList();
+  }
+  loadFaceModels();
+});
+
+// ================================================================
+// CONFIG / URL
+// ================================================================
+function saveGasUrl() {
+  const url = document.getElementById('gasUrlInput').value.trim();
+  if (!url || !url.startsWith('https://')) {
+    Swal.fire('URL ไม่ถูกต้อง', 'กรุณาใส่ URL ที่ขึ้นต้นด้วย https://', 'warning');
+    return;
+  }
+  GAS_URL = url;
+  localStorage.setItem('gasUrl', url);
+  document.getElementById('configBanner').classList.add('hidden');
+  Swal.fire({ icon: 'success', title: 'บันทึก URL แล้ว', timer: 1500, showConfirmButton: false });
+  loadEmployeeList();
+}
+
+function changeGasUrl() {
+  document.getElementById('gasUrlInput').value = GAS_URL;
+  document.getElementById('configBanner').classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+async function testConnection() {
+  const url = document.getElementById('gasUrlInput').value.trim();
+  if (!url) return;
+  try {
+    setLoadingText('กำลังทดสอบการเชื่อมต่อ...');
+    showLoading();
+    const res = await gasCall(url, 'ping');
+    hideLoading();
+    if (res && res.ok) {
+      Swal.fire({ icon: 'success', title: 'เชื่อมต่อสำเร็จ!', text: 'GAS ตอบสนองปกติ', timer: 2000, showConfirmButton: false });
+    } else {
+      Swal.fire('เชื่อมต่อได้แต่ GAS ตอบผิดปกติ', JSON.stringify(res), 'warning');
+    }
+  } catch(e) {
+    hideLoading();
+    Swal.fire('เชื่อมต่อไม่สำเร็จ', e.message, 'error');
+  }
+}
+
+// ================================================================
+// GAS API CALL (fetch แทน google.script.run)
+// ================================================================
+async function gasCall(url, action, payload = {}) {
+  const body = JSON.stringify({ action, ...payload });
+  const res = await fetch(url || GAS_URL, {
+    method: 'POST',
+    // GAS ต้องการ text/plain เพื่อหลีกเลี่ยง CORS preflight
+    headers: { 'Content-Type': 'text/plain' },
+    body
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+// ================================================================
+// FACE API MODELS
+// ================================================================
+function loadFaceModels() {
+  setLoadingText('กำลังโหลด AI โมเดล...');
+  const MODEL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+  Promise.all([
+    faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL)
+  ]).then(() => {
+    faceApiReady = true;
+    hideLoading();
+    if (selectedEmp) document.getElementById('btnCapture').disabled = false;
+  }).catch(err => {
+    hideLoading();
+    showStatus('error', 'โหลด AI โมเดลไม่สำเร็จ: ' + err.message);
+  });
+}
+
+// ================================================================
+// EMPLOYEE LIST
+// ================================================================
+async function loadEmployeeList() {
+  if (!GAS_URL) {
+    setListHtml('<div class="status-box warning"><i class="fas fa-exclamation-triangle"></i> กรุณาตั้งค่า GAS URL ก่อน</div>');
+    return;
+  }
+  setListHtml('<div class="status-box info"><i class="fas fa-spinner fa-spin"></i> กำลังโหลด...</div>');
+  try {
+    const data = await gasCall(GAS_URL, 'getEmployeesWithFaceStatus');
+    if (!data.success) throw new Error(data.message || 'ข้อผิดพลาดจาก GAS');
+    employees = data.employees || [];
+    renderList();
+    updateStats();
+  } catch(e) {
+    setListHtml(`<div class="status-box error"><i class="fas fa-times-circle"></i> โหลดไม่สำเร็จ: ${e.message}</div>`);
+  }
+}
+
+function refreshEmployeeList() { loadEmployeeList(); }
+
+function renderList() {
+  const term = document.getElementById('searchInput').value.toLowerCase();
+  const list = employees.filter(e => e.name.toLowerCase().includes(term));
+  if (!list.length) {
+    setListHtml('<div class="status-box warning"><i class="fas fa-search"></i> ไม่พบพนักงาน</div>');
+    return;
+  }
+  document.getElementById('employeeList').innerHTML = list.map(emp => {
+    const sel = selectedEmp && selectedEmp.name === emp.name;
+    return `
+      <div class="employee-item ${sel ? 'selected' : ''}" onclick="selectEmployee('${esc(emp.name)}')">
+        <div class="emp-info">
+          <div class="emp-avatar">${emp.name.charAt(0)}</div>
+          <span class="emp-name">${emp.name}</span>
+        </div>
+        <span class="emp-badge ${emp.hasDescriptor ? 'badge-ok' : 'badge-no'}">
+          ${emp.hasDescriptor
+            ? '<i class="fas fa-check-circle"></i> ลงทะเบียนแล้ว'
+            : '<i class="fas fa-clock"></i> รอลงทะเบียน'}
+        </span>
+      </div>`;
+  }).join('');
+}
+
+function filterList() { renderList(); }
+
+function updateStats() {
+  const total = employees.length;
+  const ok    = employees.filter(e => e.hasDescriptor).length;
+  document.getElementById('statTotal').textContent   = total;
+  document.getElementById('statOk').textContent      = ok;
+  document.getElementById('statPending').textContent = total - ok;
+}
+
+function setListHtml(html) {
+  document.getElementById('employeeList').innerHTML = html;
+}
+
+// ================================================================
+// SELECT EMPLOYEE
+// ================================================================
+function selectEmployee(name) {
+  selectedEmp = employees.find(e => e.name === name);
+  if (!selectedEmp) return;
+
+  // header bar
+  document.getElementById('selectedBar').classList.remove('hidden');
+  document.getElementById('noSelectMsg').classList.add('hidden');
+  document.getElementById('cameraSection').classList.remove('hidden');
+  document.getElementById('selAvatar').textContent = name.charAt(0);
+  document.getElementById('selName').textContent   = name;
+  document.getElementById('selStatus').textContent = selectedEmp.hasDescriptor
+    ? 'ลงทะเบียนแล้ว — สามารถถ่ายใหม่เพื่ออัปเดตได้'
+    : 'ยังไม่ได้ลงทะเบียนใบหน้า';
+
+  document.getElementById('btnDelete').classList.toggle('hidden', !selectedEmp.hasDescriptor);
+  document.getElementById('btnRetake').classList.add('hidden');
+  renderList();
+  initCamera();
+}
+
+// ================================================================
+// CAMERA
+// ================================================================
+function initCamera() {
+  showCamOverlay('กำลังเปิดกล้อง...');
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showStatus('error', 'Browser นี้ไม่รองรับกล้อง — ลองใน Chrome/Edge บน HTTPS');
+    return;
+  }
+
+  if (stream) stream.getTracks().forEach(t => t.stop());
+
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+  }).then(s => {
+    stream = s;
+    video.srcObject = s;
+    video.onloadedmetadata = () => {
+      video.play();
+      video.style.display = 'block';
+      canvas.style.display = 'none';
+      hideCamOverlay();
+      if (faceApiReady) document.getElementById('btnCapture').disabled = false;
+      showStatus('info', 'พร้อมถ่ายภาพ — วางใบหน้าในกรอบวงรี');
+    };
+  }).catch(err => {
+    hideCamOverlay();
+    const msgs = {
+      NotAllowedError:  'กรุณาอนุญาตให้ใช้กล้องในการตั้งค่า Browser',
+      NotFoundError:    'ไม่พบกล้องในอุปกรณ์นี้',
+      NotReadableError: 'กล้องกำลังถูกใช้งานโดย App อื่น'
+    };
+    showStatus('error', msgs[err.name] || 'เปิดกล้องไม่สำเร็จ: ' + err.message);
+  });
+}
+
+// ================================================================
+// CAPTURE + PROCESS
+// ================================================================
+function captureAndProcess() {
+  if (!selectedEmp || !faceApiReady || processing) return;
+  processing = true;
+  document.getElementById('btnCapture').disabled = true;
+  showCamOverlay('กำลังวิเคราะห์ใบหน้า...');
+
+  // snapshot
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.save();
+  ctx.scale(-1, 1);
+  ctx.translate(-canvas.width, 0);
+  ctx.drawImage(video, 0, 0);
+  ctx.restore();
+  video.style.display  = 'none';
+  canvas.style.display = 'block';
+
+  const img = new Image();
+  img.onload = async () => {
+    try {
+      const det = await faceapi.detectSingleFace(img)
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!det) {
+        showStatus('error', 'ไม่พบใบหน้าในภาพ กรุณาถ่ายใหม่');
+        document.getElementById('btnRetake').classList.remove('hidden');
+        hideCamOverlay();
+        processing = false;
+        return;
+      }
+
+      showCamOverlay('กำลังบันทึกข้อมูล...');
+      const descriptor = Array.from(det.descriptor);
+
+      const result = await gasCall(GAS_URL, 'saveFaceDescriptor', {
+        employeeName: selectedEmp.name,
+        descriptor
+      });
+
+      hideCamOverlay();
+      processing = false;
+
+      if (result.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'ลงทะเบียนสำเร็จ!',
+          text: `บันทึกใบหน้าของ ${selectedEmp.name} เรียบร้อย`,
+          timer: 2200,
+          showConfirmButton: false
+        });
+        // update local state
+        const emp = employees.find(e => e.name === selectedEmp.name);
+        if (emp) emp.hasDescriptor = true;
+        selectedEmp.hasDescriptor = true;
+        updateStats();
+        renderList();
+        document.getElementById('selStatus').textContent = 'ลงทะเบียนแล้ว';
+        document.getElementById('btnDelete').classList.remove('hidden');
+        document.getElementById('btnRetake').classList.remove('hidden');
+        showStatus('success', 'บันทึกใบหน้าสำเร็จ ✅');
+      } else {
+        showStatus('error', result.message || 'บันทึกไม่สำเร็จ');
+        document.getElementById('btnRetake').classList.remove('hidden');
+      }
+    } catch(e) {
+      hideCamOverlay();
+      processing = false;
+      showStatus('error', 'เกิดข้อผิดพลาด: ' + e.message);
+      document.getElementById('btnRetake').classList.remove('hidden');
+    }
+  };
+  img.src = canvas.toDataURL('image/jpeg', 0.92);
+}
+
+function retakePhoto() {
+  document.getElementById('btnRetake').classList.add('hidden');
+  document.getElementById('btnCapture').disabled = false;
+  initCamera();
+}
+
+// ================================================================
+// DELETE
+// ================================================================
+async function deleteFaceData() {
+  if (!selectedEmp) return;
+  const confirm = await Swal.fire({
+    title: 'ยืนยันการลบ?',
+    text: `ลบข้อมูลใบหน้าของ "${selectedEmp.name}"`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'ลบข้อมูล',
+    cancelButtonText: 'ยกเลิก'
+  });
+  if (!confirm.isConfirmed) return;
+
+  showCamOverlay('กำลังลบข้อมูล...');
+  try {
+    const result = await gasCall(GAS_URL, 'deleteFaceDescriptor', { employeeName: selectedEmp.name });
+    hideCamOverlay();
+    if (result.success) {
+      Swal.fire({ icon: 'success', title: 'ลบข้อมูลสำเร็จ', timer: 1500, showConfirmButton: false });
+      const emp = employees.find(e => e.name === selectedEmp.name);
+      if (emp) emp.hasDescriptor = false;
+      selectedEmp.hasDescriptor = false;
+      updateStats();
+      renderList();
+      document.getElementById('selStatus').textContent = 'ยังไม่ได้ลงทะเบียน';
+      document.getElementById('btnDelete').classList.add('hidden');
+      showStatus('info', 'ลบข้อมูลใบหน้าแล้ว สามารถลงทะเบียนใหม่ได้');
+    } else {
+      showStatus('error', result.message);
+    }
+  } catch(e) {
+    hideCamOverlay();
+    showStatus('error', 'ลบไม่สำเร็จ: ' + e.message);
+  }
+}
+
+// ================================================================
+// HELPERS
+// ================================================================
+function showCamOverlay(txt) {
+  document.getElementById('camOverlay').classList.remove('hidden');
+  document.getElementById('overlayTxt').textContent = txt;
+}
+function hideCamOverlay() {
+  document.getElementById('camOverlay').classList.add('hidden');
+}
+function showStatus(type, msg) {
+  const icons = { info:'fa-info-circle', success:'fa-check-circle', warning:'fa-exclamation-triangle', error:'fa-times-circle' };
+  document.getElementById('statusMsg').innerHTML =
+    `<div class="status-box ${type}"><i class="fas ${icons[type]}"></i><span>${msg}</span></div>`;
+}
+function showLoading() { document.getElementById('loadingScreen').classList.remove('hidden'); }
+function hideLoading() { document.getElementById('loadingScreen').classList.add('hidden'); }
+function setLoadingText(t) { document.getElementById('loadingText').textContent = t; }
+function esc(str) { return str.replace(/'/g, "\\'"); }
+</script>
+</body>
 </html>
